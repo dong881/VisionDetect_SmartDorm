@@ -19,7 +19,7 @@ cap = cv2.VideoCapture(0)  # 可根據需要更改視訊源
 
 # 初始化變數
 max_continuous_time = 12  # 最大持續時間，單位為秒
-person_near_camera = true
+person_near_camera = True
 last_detection_time = 0  # 上一次偵測到人的時間
 
 # Lock 用於確保多執行緒安全訪問共享資源
