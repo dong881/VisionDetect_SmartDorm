@@ -1,8 +1,14 @@
+import RPi.GPIO as GPIO
 import mediapipe
 import cv2
 import threading
 import time
 from mediapipe.python.solutions import pose as mp_pose
+
+# 初始化 GPIO
+GPIO_PIN = 17  # 更改為你實際使用的 GPIO pin
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(GPIO_PIN, GPIO.OUT)
 
 # 初始化 MediaPipe 人體檢測模型
 mp_pose_module = mediapipe.solutions.pose
@@ -12,7 +18,7 @@ mp_pose = mp_pose_module.Pose()
 cap = cv2.VideoCapture(0)  # 可根據需要更改視訊源
 
 # 初始化變數
-max_continuous_time = 5  # 最大持續時間，單位為秒
+max_continuous_time = 12  # 最大持續時間，單位為秒
 person_near_camera = False
 last_detection_time = 0  # 上一次偵測到人的時間
 
@@ -72,10 +78,14 @@ def process_frame():
                     # 更新偵測到人的時間
                     last_detection_time = time.time()
                     person_near_camera = True
+                    # 控制 GPIO 繼電器輸出 1
+                    GPIO.output(GPIO_PIN, GPIO.HIGH)
                 else:
                     # 如果持續時間超過設定的最大持續時間，則設定為 False
                     if time.time() - last_detection_time > max_continuous_time:
                         person_near_camera = False
+                        # 控制 GPIO 繼電器輸出 0
+                        GPIO.output(GPIO_PIN, GPIO.LOW)
 
                 print(person_near_camera)
 
@@ -94,3 +104,6 @@ read_thread.join()
 
 # 關閉視窗（如果有的話）
 cv2.destroyAllWindows()
+
+# 釋放 GPIO 資源
+GPIO.cleanup()
