@@ -18,9 +18,13 @@ mp_pose = mp_pose_module.Pose()
 cap = cv2.VideoCapture(0)  # 可根據需要更改視訊源
 
 # 初始化變數
-max_continuous_time = 12  # 最大持續時間，單位為秒
-person_near_camera = True
+max_continuous_time = 5  # 最大持續時間，單位為秒
+person_near_camera = False
 last_detection_time = 0  # 上一次偵測到人的時間
+
+# 控制 GPIO 狀態
+GPIO_STATE = False
+GPIO_TARGET_STATE = False
 
 # Lock 用於確保多執行緒安全訪問共享資源
 lock = threading.Lock()
@@ -61,12 +65,12 @@ def is_person_near_camera(results):
                    landmarks[mp_pose_module.PoseLandmark.NOSE].y)
 
     # 判斷鼻子是否位於畫面正下方中間位置
-    near_camera = 0.4 < nose_coords[0] < 0.6 and nose_coords[1] > 0.5
+    near_camera = 0.3 < nose_coords[0] < 0.7 and nose_coords[1] > 0.3
 
     return near_camera
 
 def process_frame():
-    global frame, person_near_camera, last_detection_time
+    global frame, person_near_camera, last_detection_time, GPIO_STATE, GPIO_TARGET_STATE
     while True:
         if 'frame' in globals():
             # 進行人體檢測
@@ -78,16 +82,22 @@ def process_frame():
                     # 更新偵測到人的時間
                     last_detection_time = time.time()
                     person_near_camera = True
-                    # 控制 GPIO 繼電器輸出 1
-                    GPIO.output(GPIO_PIN, GPIO.HIGH)
+                    GPIO_TARGET_STATE = True
                 else:
                     # 如果持續時間超過設定的最大持續時間，則設定為 False
                     if time.time() - last_detection_time > max_continuous_time:
                         person_near_camera = False
-                        # 控制 GPIO 繼電器輸出 0
-                        GPIO.output(GPIO_PIN, GPIO.LOW)
+                        GPIO_TARGET_STATE = False
 
                 print(person_near_camera)
+
+                # 控制 GPIO 狀態漸進過渡
+                if GPIO_STATE != GPIO_TARGET_STATE:
+                    GPIO_STATE = GPIO_TARGET_STATE
+                    if GPIO_STATE:
+                        GPIO.output(GPIO_PIN, GPIO.HIGH)
+                    else:
+                        GPIO.output(GPIO_PIN, GPIO.LOW)
 
 # 開始辨識的執行緒
 process_thread = threading.Thread(target=process_frame)
