@@ -5,43 +5,52 @@ import time
 import numpy as np
 import mediapipe as mp
 from tensorflow.keras.models import load_model
+import multiprocessing
+
+# for i in range(10):  # Try indices from 0 to 9
+#     cap = cv2.VideoCapture(i)
+#     if cap.isOpened():
+#         print(f"Camera index {i}: {cap.get(cv2.CAP_PROP_FRAME_WIDTH)}x{cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
+#         cap.release()
 
 
-# 載入訓練好的模型
-model = load_model('dong_model.h5')  # 記得換成你的模型檔名
+# Global variables
+frame = None
 
 # 初始化 GPIO
 GPIO_PIN = 17  # 更改為你實際使用的 GPIO pin
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_PIN, GPIO.OUT)
 
-# 初始化 OpenCV 視訊捕捉
-cap = cv2.VideoCapture(0)  # 可根據需要更改視訊源
-
 # 初始化變數
 max_continuous_time = 5  # 最大持續時間，單位為秒
+person_near_camera = False
 last_detection_time = 0  # 上一次偵測到人的時間
 
 # 控制 GPIO 狀態
 GPIO_STATE = False
 GPIO_TARGET_STATE = False
 
-# Lock 用於確保多執行緒安全訪問共享資源
-lock = threading.Lock()
+# 載入訓練好的模型
+model = load_model('dong_model.h5')  # 記得換成你的模型檔名
 
-def read_frame():
-    global frame
+# Lock 用於確保多執行緒安全訪問共享資源
+lock = multiprocessing.Lock()
+
+def read_frame(frame_queue):
+    # 初始化 OpenCV 視訊捕捉
+    cap = cv2.VideoCapture(0)  # 可根據需要更改視訊源
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
-
-    # 釋放資源
+        frame_queue.put(frame)
     cap.release()
 
-# 開始讀取視訊的執行緒
-read_thread = threading.Thread(target=read_frame)
-read_thread.start()
+# Start reading frames using multiprocessing
+frame_queue = multiprocessing.Queue()
+read_process = multiprocessing.Process(target=read_frame, args=(frame_queue,))
+read_process.start()
 
 def preprocess_and_reshape(frame):
 
@@ -89,10 +98,11 @@ def preprocess_and_reshape(frame):
         # 如果提取不到資料，返回全為零的陣列（或其他預設值）
         return np.zeros((7,))
 
-def process_frame():
-    global frame, preprocess_and_reshape, last_detection_time, GPIO_STATE, GPIO_TARGET_STATE
+def process_frame(frame_queue):
+    global preprocess_and_reshape, last_detection_time, GPIO_STATE, GPIO_TARGET_STATE
     while True:
-        if 'frame' in globals():
+        if not frame_queue.empty():
+            frame = frame_queue.get()
 
             with lock:
                 # 判斷人是否靠近鏡頭
@@ -117,18 +127,18 @@ def process_frame():
                     else:
                         GPIO.output(GPIO_PIN, GPIO.LOW)
 
-# 開始辨識的執行緒
-process_thread = threading.Thread(target=process_frame)
-process_thread.start()
+# Start processing frames using multiprocessing
+process_process = multiprocessing.Process(target=process_frame, args=(frame_queue,))
+process_process.start()
 
 # 主執行緒繼續處理其他事務或等待
 # ...
 
-# 等待辨識執行緒完成
-process_thread.join()
+# 等待辨識執行完成
+process_process.join()
 
-# 等待讀取執行緒完成
-read_thread.join()
+# 等待讀取執行完成
+read_process.join()
 
 # 關閉視窗（如果有的話）
 cv2.destroyAllWindows()
