@@ -67,6 +67,54 @@ This project uses MediaPipe on Windows for pose detection model training. The tr
 
 3. The GPIO pin state will be controlled based on whether a person is detected near the mirror.
 
+
+### Other
+
+## collect-data.py
+
+收集姿勢和人臉資料並儲存為 JSON 檔。
+
+```bash
+python collect-data.py 
+```
+
+## train-model.py
+
+訓練以收集的資料集建立的模型。
+
+```bash  
+python train-model.py
+```
+
+## main.py
+
+在 Raspberry Pi 上使用訓練好的模型進行人體姿勢偵測。
+
+```bash
+python main.py
+```
+
+## mediapipe-main.py
+
+利用 MediaPipe 直接進行偵測(無需訓練)。
+
+```bash
+python mediapipe-main.py  
+```
+
+## 其他檔案
+
+data/*.json - 收集的訓練資料集 
+
+dong_model.h5 - 訓練好的模型
+
+## 使用流程
+
+1. 收集資料(collect-data.py)  
+2. 訓練模型(train-model.py) 
+3. 啟動偵測(main.py)
+
+
 ## Customization
 
 You can customize the behavior of the smart mirror by adjusting the following parameters in the script:
