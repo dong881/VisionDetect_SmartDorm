@@ -9,8 +9,29 @@ This project utilizes a Raspberry Pi, a camera, and GPIO pins to create a smart 
 - Python 3
 - OpenCV
 - MediaPipe
+- upgrade pip
+```bash
+   pip install --upgrade pip
+```
 
 ## Installation
+
+### windows 11
+
+1. [Install virtal env](https://simplelearn.tw/python-virtualenv/)
+```bash
+   virtualenv <YOUR-ENV-NAME>
+   cd <YOUR-PATH-TO-ENV-DIRC>
+   activate
+```
+2. [Install mediapipe and relate](https://ithelp.ithome.com.tw/articles/10297967)
+```bash
+   pip install mediapipe
+   pip install tensorflow
+   pip install opencv-python
+```
+
+### Raspberry Pi 3B+
 
 1. Clone the repository to your Raspberry Pi:
 
