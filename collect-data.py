@@ -1,3 +1,5 @@
+DEFAULT_TYPE = True
+
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -23,7 +25,7 @@ os.makedirs(data_path, exist_ok=True)
 # 資料收集
 def collect_data():
     all_data = []
-    is_true = False
+    is_true = DEFAULT_TYPE
 
     while True:
         ret, frame = cap.read()
@@ -65,7 +67,6 @@ def collect_data():
             concatenated_data = np.squeeze(concatenated_data)
 
             normalized_data = {
-                # "timestamp": str(datetime.now()),
                 "concatenated_data": concatenated_data.tolist(), 
                 "label": 1 if is_true else 0
             }
@@ -89,11 +90,11 @@ def collect_data():
         # 按下空白鍵設為True，放開設為False
         key = cv2.waitKey(1) & 0xFF
         if key == ord(' '):
-            is_true = True
+            is_true = not(DEFAULT_TYPE)
         elif key == ord('q'):
             break
         elif key == 255:  # 空白鍵放開
-            is_true = False
+            is_true = DEFAULT_TYPE
 
     cap.release()
     cv2.destroyAllWindows()
