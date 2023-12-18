@@ -1,37 +1,43 @@
-# Smart Mirror with Person Detection README
+# Smart Mirror with Person Detection
 
-This project utilizes a Raspberry Pi, a camera, and GPIO pins to create a smart mirror that detects when a person is near the mirror and adjusts its display accordingly. The person detection is based on the usage of the MediaPipe Pose model for detecting human poses.
+This project uses MediaPipe on Windows for pose detection model training. The trained model is deployed on a Raspberry Pi to detect persons and control mirror display via GPIO pin signals.
 
-## Requirements
+## Key Features
 
-- Raspberry Pi with GPIO pins
-- Camera (USB or Raspberry Pi Camera Module)
+- Trains custom pose detection model on Windows 
+- Deploys model on Raspberry Pi to detect people  
+- Controls GPIO pin high/low to turn mirror display on/off
+- Easy integration with other smart mirror capabilities
+
+## Getting Started
+
+### Prerequisites
+
+- Raspberry Pi
+- Camera module or USB webcam
+- GPIO pins setup
 - Python 3
-- OpenCV
+- OpenCV 
 - MediaPipe
-- upgrade pip
-```bash
-   pip install --upgrade pip
-```
+### Installation
 
-## Installation
-
-### windows 11
+**On Windows:**
 
 1. [Install virtal env](https://simplelearn.tw/python-virtualenv/)
-```bash
+   ```
    virtualenv <YOUR-ENV-NAME>
    cd <YOUR-PATH-TO-ENV-DIRC>
    activate
-```
+   ```
+
 2. [Install mediapipe and relate](https://ithelp.ithome.com.tw/articles/10297967)
-```bash
+   ```
    pip install mediapipe
    pip install tensorflow
    pip install opencv-python
-```
+   ```
 
-### Raspberry Pi 3B+
+**On Raspberry Pi:**  
 
 1. Clone the repository to your Raspberry Pi:
 
@@ -46,6 +52,8 @@ This project utilizes a Raspberry Pi, a camera, and GPIO pins to create a smart 
    ```
 
 3. Connect your camera to the Raspberry Pi and make sure the GPIO pins are properly set up.
+
+
 
 ## Usage
 
@@ -76,3 +84,6 @@ If you have any improvements or suggestions, feel free to create a pull request.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+
