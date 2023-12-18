@@ -6,6 +6,7 @@ import numpy as np
 import mediapipe as mp
 from tensorflow.keras.models import load_model
 
+
 # 載入訓練好的模型
 model = load_model('dong_model.h5')  # 記得換成你的模型檔名
 
