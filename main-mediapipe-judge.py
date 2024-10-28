@@ -111,7 +111,7 @@ def update_max_continuous_time():
     """
     current_hour = datetime.datetime.now().hour
     if 0 <= current_hour < 8:
-        return 5
+        return 180
     else:
         return 300
 
