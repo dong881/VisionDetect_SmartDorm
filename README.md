@@ -48,6 +48,14 @@ This project uses MediaPipe on Windows for pose detection model training. The tr
 2. Install the required Python libraries:
 
    ```bash
+   sudo apt install python3-venv
+   python3 -m venv myenv
+   source myenv/bin/activate
+   sudo apt update
+      #If you use DietPI OS
+      sudo apt install build-essential python3-dev
+      sudo apt install gcc-aarch64-linux-gn
+      # about 1 hour
    pip install RPi.GPIO opencv-python mediapipe
    ```
 
@@ -57,16 +65,71 @@ This project uses MediaPipe on Windows for pose detection model training. The tr
 
 ## Usage
 
-1. Run the main Python script:
+- Try running the main Python script:
 
    ```bash
-   python smart_mirror.py
+   source myenv/bin/activate
+   python3 smart_mirror.py
+   ```
+- The script will start capturing video from the camera and detecting the presence of a person.
+- The GPIO pin state will be controlled based on whether a person is detected near the mirror.
+
+## Running as a Service
+
+To ensure that the person detection script runs automatically on startup and keeps running in the background, you can set it up as a systemd service on your Raspberry Pi.
+
+### Setting up the Service
+
+1. Create a new service file:
+
+   ```bash
+   sudo nano /etc/systemd/system/visiondorm.service
    ```
 
-2. The script will start capturing video from the camera and detecting the presence of a person.
+2. Add the following content to the service file:
 
-3. The GPIO pin state will be controlled based on whether a person is detected near the mirror.
+   ```bash
+   [Unit]
+   Description=VisionDetect SmartDorm Service
+   After=network.target
 
+   [Service]
+   WorkingDirectory=/root/VisionDetect_SmartDorm
+   ExecStart=/bin/bash -c "source /root/VisionDetect_SmartDorm/dorm/bin/activate && python3 /root/VisionDetect_SmartDorm/main-mediapipe-judge.py"
+   Restart=on-failure
+   RestartSec=5
+   StandardOutput=append:/root/VisionDetect_SmartDorm/LOG/visiondorm.log
+   StandardError=append:/root/VisionDetect_SmartDorm/LOG/visiondormError.log
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. Reload the systemd manager configuration:
+
+   ```bash
+   sudo systemctl daemon-reload
+   ```
+
+4. Enable the service to start on boot:
+
+   ```bash
+   sudo systemctl enable visiondorm.service
+   ```
+
+5. Start the service:
+
+   ```bash
+   sudo systemctl start visiondorm.service
+   ```
+
+6. Check the status of the service:
+
+   ```bash
+   sudo systemctl status visiondorm.service
+   ```
+
+By following these steps, the person detection script will run automatically in the background, ensuring continuous operation of the smart mirror functionality.
 
 ### Other
 
