@@ -40,7 +40,7 @@ max_continuous_time = 5
 person_near_camera = False
 last_detection_time = 0
 last_wol_time = 0
-WOL_COOLDOWN = 30
+WOL_COOLDOWN = 60
 GESTURE_HOLD_TIME = 2.0  # 新增：需要持續手勢的時間
 last_gesture_start_time = 0  # 新增：開始做手勢的時間
 
@@ -83,7 +83,7 @@ def is_victory_gesture(hand_landmarks):
                        (index_tip.y - middle_tip.y) ** 2) ** 0.5
     
     # 確保手指之間有足夠的距離（避免手指併攏）
-    min_distance = 0.04  # 調整此值以改變所需的手指間距
+    min_distance = 0.02  # 調整此值以改變所需的手指間距
     
     return (index_straight and middle_straight and 
             others_bent and fingers_distance > min_distance)
