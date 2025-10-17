@@ -47,6 +47,7 @@ echo ""
 
 # 步驟 3: 啟動 conda 環境並安裝套件
 echo "[步驟 3/6] 安裝必要套件..."
+eval "$(conda shell.bash hook)"
 conda activate "$CONDA_ENV"
 
 # 升級 pip
@@ -88,7 +89,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=$SCRIPT_DIR
-ExecStart=/bin/bash -c "export PATH=/opt/miniconda3/bin:\$PATH && conda activate $CONDA_ENV && python3 $SCRIPT_DIR/main-mediapipe.py"
+ExecStart=/bin/bash -c "export PATH=/opt/miniconda3/bin:\$PATH && eval \"\$(conda shell.bash hook)\" && conda activate $CONDA_ENV && python3 $SCRIPT_DIR/main-mediapipe.py"
 Restart=on-failure
 RestartSec=5
 StandardOutput=append:$SCRIPT_DIR/LOG/visiondorm.log
