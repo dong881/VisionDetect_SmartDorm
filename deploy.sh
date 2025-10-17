@@ -60,6 +60,7 @@ echo "  - RPi.GPIO"
 pip install RPi.GPIO
 
 echo "  - opencv-python"
+export TMPDIR=/home/$(whoami)
 pip install opencv-python
 
 echo "  - mediapipe"
