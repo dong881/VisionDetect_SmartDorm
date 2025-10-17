@@ -1,6 +1,6 @@
-# VisionDetect SmartDorm - 智慧鏡面人體偵測系統
+# VisionDetect SmartDorm - 人體偵測開關燈 (宿舍適用)
 
-本專案使用 MediaPipe 在 Raspberry Pi 上進行即時人體姿勢偵測，並透過 GPIO 控制智慧鏡面的顯示。系統採用進階的偵測演算法，支援手勢辨識和智能燈光控制。
+本專案使用 MediaPipe 在 Raspberry Pi 上進行即時人體姿勢偵測，並透過 GPIO 控制智慧鏡面的顯示。系統採用MediaPipe進階的偵測演算法，支援手勢辨識
 
 ## 主要功能
 
@@ -27,7 +27,7 @@
    ```
 
    腳本會自動完成以下工作：
-   - ✅ 在家目錄建立 `pienv` 虛擬環境
+   - ✅ 在~/建立 `pienv` 虛擬環境
    - ✅ 安裝所有必要套件（RPi.GPIO, mediapipe, opencv-python, numpy）
    - ✅ 建立並啟用 systemd 服務
    - ✅ 設定開機自動啟動
@@ -224,7 +224,7 @@ sudo dphys-swapfile swapon
 
 ## 授權
 
-本專案採用 MIT License - 詳見 [LICENSE](LICENSE) 檔案。
+Ming Hone HSU © 2025.
 
 ## 相關連結
 
