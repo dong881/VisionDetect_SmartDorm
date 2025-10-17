@@ -23,6 +23,7 @@ else
     chmod +x Miniconda3-latest-Linux-aarch64.sh
     ./Miniconda3-latest-Linux-aarch64.sh -b -p /opt/miniconda3
     rm Miniconda3-latest-Linux-aarch64.sh
+    export PATH="/opt/miniconda3/bin:$PATH"
     echo "✓ Miniconda 安裝完成"
 fi
 export PATH="/opt/miniconda3/bin:$PATH"
@@ -37,6 +38,21 @@ else
     conda create -n "$CONDA_ENV" python=3.12 -y
     echo "✓ Conda 環境建立完成"
 fi
+echo ""
+
+# 取得 conda 實體環境目錄（根本解法）
+CONDA_ENV_PATH=$(conda env list | awk -v env="$CONDA_ENV" '$1==env {print $NF}')
+if [ -z "$CONDA_ENV_PATH" ] || [ ! -f "$CONDA_ENV_PATH/bin/python" ]; then
+    # fallback: 直接查詢 home 下的 .conda
+    if [ -f "$HOME/.conda/envs/$CONDA_ENV/bin/python" ]; then
+        CONDA_ENV_PATH="$HOME/.conda/envs/$CONDA_ENV"
+    else
+        echo "找不到 conda 環境目錄，請檢查 conda 安裝！"
+        exit 1
+    fi
+fi
+PYTHON_PATH="$CONDA_ENV_PATH/bin/python"
+echo "自動偵測到 Python 路徑: $PYTHON_PATH"
 echo ""
 
 # 步驟 3: 安裝必要套件
@@ -58,7 +74,6 @@ echo ""
 # 步驟 5: 建立 systemd 服務檔案
 echo "[步驟 5/6] 建立 systemd 服務..."
 SERVICE_FILE="/etc/systemd/system/visiondorm.service"
-PYTHON_PATH="/opt/miniconda3/envs/$CONDA_ENV/bin/python"
 MAIN_SCRIPT="$SCRIPT_DIR/main-mediapipe.py"
 
 sudo tee "$SERVICE_FILE" > /dev/null <<EOF
