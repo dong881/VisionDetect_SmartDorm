@@ -43,6 +43,7 @@ echo ""
 echo "[步驟 3/6] 安裝必要套件..."
 eval "$(conda shell.bash hook)"
 conda activate "$CONDA_ENV"
+export TMPDIR=/home/$(whoami)
 pip install --upgrade pip
 pip install RPi.GPIO opencv-python mediapipe numpy
 echo "✓ 所有套件安裝完成"
