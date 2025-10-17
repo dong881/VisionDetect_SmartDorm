@@ -5,31 +5,30 @@ set -e
 echo "=========================================="
 echo "VisionDetect SmartDorm 自動部署腳本"
 echo "=========================================="
-echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-echo "專案目錄: $SCRIPT_DIR"
 CONDA_ENV="mediapipe-env"
+echo "專案目錄: $SCRIPT_DIR"
 echo "Conda 環境名稱: $CONDA_ENV"
 echo ""
 
-# 步驟 1: 檢查並安裝 Miniconda
+# 1. 檢查並安裝 Miniconda
 echo "[步驟 1/6] 檢查 Miniconda..."
-if command -v conda &> /dev/null; then
+if command -v conda &>/dev/null; then
     echo "✓ Miniconda 已安裝"
 else
     echo "下載並安裝 Miniconda..."
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
     chmod +x Miniconda3-latest-Linux-aarch64.sh
-    ./Miniconda3-latest-Linux-aarch64.sh -b -p /opt/miniconda3
+    ./Miniconda3-latest-Linux-aarch64.sh -b -p $HOME/miniconda3
     rm Miniconda3-latest-Linux-aarch64.sh
-    export PATH="/opt/miniconda3/bin:$PATH"
+    export PATH="$HOME/miniconda3/bin:$PATH"
     echo "✓ Miniconda 安裝完成"
 fi
-export PATH="/opt/miniconda3/bin:$PATH"
+export PATH="$HOME/miniconda3/bin:$PATH"
 echo ""
 
-# 步驟 2: 檢查並建立 conda 環境
+# 2. 檢查並建立 conda 環境
 echo "[步驟 2/6] 檢查 conda 環境..."
 if conda env list | grep -q "$CONDA_ENV"; then
     echo "✓ Conda 環境已存在: $CONDA_ENV"
@@ -40,22 +39,7 @@ else
 fi
 echo ""
 
-# 取得 conda 實體環境目錄（根本解法）
-CONDA_ENV_PATH=$(conda env list | awk -v env="$CONDA_ENV" '$1==env {print $NF}')
-if [ -z "$CONDA_ENV_PATH" ] || [ ! -f "$CONDA_ENV_PATH/bin/python" ]; then
-    # fallback: 直接查詢 home 下的 .conda
-    if [ -f "$HOME/.conda/envs/$CONDA_ENV/bin/python" ]; then
-        CONDA_ENV_PATH="$HOME/.conda/envs/$CONDA_ENV"
-    else
-        echo "找不到 conda 環境目錄，請檢查 conda 安裝！"
-        exit 1
-    fi
-fi
-PYTHON_PATH="$CONDA_ENV_PATH/bin/python"
-echo "自動偵測到 Python 路徑: $PYTHON_PATH"
-echo ""
-
-# 步驟 3: 安裝必要套件
+# 3. 安裝必要套件
 echo "[步驟 3/6] 安裝必要套件..."
 eval "$(conda shell.bash hook)"
 conda activate "$CONDA_ENV"
@@ -65,25 +49,38 @@ pip install RPi.GPIO opencv-python mediapipe numpy
 echo "✓ 所有套件安裝完成"
 echo ""
 
-# 步驟 4: 建立 LOG 目錄
+# 4. 建立 LOG 目錄
 echo "[步驟 4/6] 建立 LOG 目錄..."
 mkdir -p "$SCRIPT_DIR/LOG"
 echo "✓ LOG 目錄建立完成: $SCRIPT_DIR/LOG"
 echo ""
 
-# 步驟 5: 建立 systemd 服務檔案
+# 5. 生成啟動 wrapper script
+WRAPPER="$SCRIPT_DIR/run_visiondorm.sh"
+cat > "$WRAPPER" <<EOF
+#!/bin/bash
+SCRIPT_DIR="$SCRIPT_DIR"
+source \$HOME/miniconda3/etc/profile.d/conda.sh
+conda activate $CONDA_ENV
+exec python "\$SCRIPT_DIR/main-mediapipe.py"
+EOF
+chmod +x "$WRAPPER"
+echo "✓ 啟動wrapper腳本建立完成: $WRAPPER"
+echo ""
+
+# 6. 建立 systemd 服務檔案
 echo "[步驟 5/6] 建立 systemd 服務..."
 SERVICE_FILE="/etc/systemd/system/visiondorm.service"
-MAIN_SCRIPT="$SCRIPT_DIR/main-mediapipe.py"
-
 sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
 Description=VisionDetect SmartDorm Service
 After=network.target
 
 [Service]
+Type=simple
+User=$(whoami)
 WorkingDirectory=$SCRIPT_DIR
-ExecStart=$PYTHON_PATH $MAIN_SCRIPT
+ExecStart=$WRAPPER
 Restart=on-failure
 RestartSec=5
 StandardOutput=file:$SCRIPT_DIR/LOG/visiondorm.log
@@ -96,13 +93,13 @@ EOF
 echo "✓ 服務檔案建立完成: $SERVICE_FILE"
 echo ""
 
-# 步驟 6: 啟用並啟動服務
+# 7. 啟用並啟動服務
 echo "[步驟 6/6] 啟用並啟動服務..."
 sudo systemctl daemon-reload
 echo "✓ systemd 設定重新載入"
 sudo systemctl enable visiondorm.service
 echo "✓ 服務已設定為開機自動啟動"
-sudo systemctl start visiondorm.service
+sudo systemctl restart visiondorm.service
 echo "✓ 服務已啟動"
 echo ""
 
