@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VisionDetect SmartDorm 自動部署腳本
-# 此腳本會建立虛擬環境、安裝依賴套件並設定為系統服務
+# 此腳本會安裝 Miniconda、建立 conda 環境、安裝依賴套件並設定為系統服務
 
 set -e  # 遇到錯誤立即停止
 
@@ -14,25 +14,40 @@ echo ""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "專案目錄: $SCRIPT_DIR"
 
-# 設定虛擬環境路徑
-VENV_PATH="$HOME/pienv"
-echo "虛擬環境路徑: $VENV_PATH"
+# 設定 conda 環境名稱
+CONDA_ENV="mediapipe-env"
+echo "Conda 環境名稱: $CONDA_ENV"
 echo ""
 
-# 步驟 1: 檢查並建立虛擬環境
-echo "[步驟 1/5] 檢查虛擬環境..."
-if [ -d "$VENV_PATH" ]; then
-    echo "✓ 虛擬環境已存在: $VENV_PATH"
+# 步驟 1: 檢查並安裝 Miniconda
+echo "[步驟 1/6] 檢查 Miniconda..."
+if command -v conda &> /dev/null; then
+    echo "✓ Miniconda 已安裝"
 else
-    echo "建立虛擬環境: $VENV_PATH"
-    python3 -m venv "$VENV_PATH"
-    echo "✓ 虛擬環境建立完成"
+    echo "下載並安裝 Miniconda..."
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh
+    sudo chmod +x Miniconda3-latest-Linux-aarch64.sh
+    sudo ./Miniconda3-latest-Linux-aarch64.sh -b -p /opt/miniconda3
+    rm Miniconda3-latest-Linux-aarch64.sh
+    echo "✓ Miniconda 安裝完成"
+fi
+export PATH="/opt/miniconda3/bin:$PATH"
+echo ""
+
+# 步驟 2: 檢查並建立 conda 環境
+echo "[步驟 2/6] 檢查 conda 環境..."
+if conda env list | grep -q "$CONDA_ENV"; then
+    echo "✓ Conda 環境已存在: $CONDA_ENV"
+else
+    echo "建立 conda 環境: $CONDA_ENV 與 Python 3.12"
+    conda create -n "$CONDA_ENV" python=3.12 -y
+    echo "✓ Conda 環境建立完成"
 fi
 echo ""
 
-# 步驟 2: 啟動虛擬環境並安裝套件
-echo "[步驟 2/5] 安裝必要套件..."
-source "$VENV_PATH/bin/activate"
+# 步驟 3: 啟動 conda 環境並安裝套件
+echo "[步驟 3/6] 安裝必要套件..."
+conda activate "$CONDA_ENV"
 
 # 升級 pip
 echo "升級 pip..."
@@ -55,14 +70,14 @@ pip install numpy
 echo "✓ 所有套件安裝完成"
 echo ""
 
-# 步驟 3: 建立 LOG 目錄
-echo "[步驟 3/5] 建立 LOG 目錄..."
+# 步驟 4: 建立 LOG 目錄
+echo "[步驟 4/6] 建立 LOG 目錄..."
 mkdir -p "$SCRIPT_DIR/LOG"
 echo "✓ LOG 目錄建立完成: $SCRIPT_DIR/LOG"
 echo ""
 
-# 步驟 4: 建立 systemd 服務檔案
-echo "[步驟 4/5] 建立 systemd 服務..."
+# 步驟 5: 建立 systemd 服務檔案
+echo "[步驟 5/6] 建立 systemd 服務..."
 SERVICE_FILE="/etc/systemd/system/visiondorm.service"
 
 # 建立服務檔案內容
@@ -73,7 +88,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=$SCRIPT_DIR
-ExecStart=/bin/bash -c "source $VENV_PATH/bin/activate && python3 $SCRIPT_DIR/main-mediapipe-judge.py"
+ExecStart=/bin/bash -c "export PATH=/opt/miniconda3/bin:\$PATH && conda activate $CONDA_ENV && python3 $SCRIPT_DIR/main-mediapipe.py"
 Restart=on-failure
 RestartSec=5
 StandardOutput=append:$SCRIPT_DIR/LOG/visiondorm.log
@@ -86,8 +101,8 @@ EOF
 echo "✓ 服務檔案建立完成: $SERVICE_FILE"
 echo ""
 
-# 步驟 5: 啟用並啟動服務
-echo "[步驟 5/5] 啟用並啟動服務..."
+# 步驟 6: 啟用並啟動服務
+echo "[步驟 6/6] 啟用並啟動服務..."
 sudo systemctl daemon-reload
 echo "✓ systemd 設定重新載入"
 
