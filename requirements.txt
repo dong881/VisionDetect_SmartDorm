@@ -1,0 +1,18 @@
+# VisionDetect SmartDorm Requirements
+# Python 3.7+
+
+# Core dependencies
+numpy>=1.19.0
+opencv-python>=4.5.0
+mediapipe>=0.10.0
+PyYAML>=5.4.0
+
+# API client (optional, for examples)
+requests>=2.25.0
+
+# Raspberry Pi GPIO (only needed on RPi)
+# Uncomment if running on Raspberry Pi
+# RPi.GPIO>=0.7.0
+
+# Optional: For additional features
+# tensorflow>=2.8.0  # If using custom models
