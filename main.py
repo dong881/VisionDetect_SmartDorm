@@ -47,6 +47,17 @@ def main():
         default='INFO',
         help='Logging level (default: INFO)'
     )
+    parser.add_argument(
+        '--enable-api',
+        action='store_true',
+        help='Enable HTTP API server for remote monitoring'
+    )
+    parser.add_argument(
+        '--api-port',
+        type=int,
+        default=8080,
+        help='API server port (default: 8080)'
+    )
     
     args = parser.parse_args()
     
@@ -57,6 +68,12 @@ def main():
     # Create orchestrator
     orchestrator = SmartDormOrchestrator(config_path=args.config)
     logger = get_logger()
+    
+    # Optionally create API server
+    api_server = None
+    if args.enable_api:
+        from visiondetect.utils.api import APIServer
+        api_server = APIServer(orchestrator, port=args.api_port)
     
     try:
         # Initialize all capabilities
@@ -70,6 +87,11 @@ def main():
         
         # Start the system
         orchestrator.start()
+        
+        # Start API server if enabled
+        if api_server:
+            api_server.start()
+            logger.info(f"API available at http://localhost:{args.api_port}/api")
         
         # Main status loop
         logger.info("System running. Press Ctrl+C to exit.")
@@ -89,6 +111,11 @@ def main():
     finally:
         # Clean shutdown
         logger.info("Shutting down...")
+        
+        # Stop API server
+        if api_server:
+            api_server.stop()
+        
         orchestrator.stop()
         orchestrator.cleanup_all()
         
