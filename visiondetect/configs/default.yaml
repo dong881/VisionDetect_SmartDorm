@@ -1,0 +1,69 @@
+# VisionDetect SmartDorm - Default Configuration
+
+# System Settings
+system:
+  version: "2.0.0"
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_dir: "LOG"
+
+# GPIO Configuration
+gpio:
+  pin: 18  # BCM mode
+  mode: "BCM"
+
+# Camera Settings
+camera:
+  device_id: 0
+  width: 640
+  height: 480
+  fps: 30
+
+# MediaPipe Pose Detection Settings
+pose_detection:
+  min_detection_confidence: 0.6
+  min_tracking_confidence: 0.6
+  enable_segmentation: true
+  static_image_mode: false
+
+# MediaPipe Hand Detection Settings  
+hand_detection:
+  max_num_hands: 1
+  min_detection_confidence: 0.75
+  min_tracking_confidence: 0.6
+  static_image_mode: false
+
+# Presence Detection Settings
+presence:
+  buffer_size: 5  # Number of frames to buffer for smoothing
+  threshold: 0.7  # Confidence threshold (0-1)
+  segmentation_threshold: 0.5
+
+# Gesture Recognition Settings
+gesture:
+  hold_time: 1.5  # Seconds to hold gesture for confirmation
+  victory_confidence_threshold: 0.8
+
+# Light Control Settings
+light_control:
+  day_start_hour: 8
+  day_end_hour: 22
+  off_delay:
+    day: 300    # 5 minutes in seconds
+    night: 180  # 3 minutes in seconds
+
+# Wake-on-LAN Settings
+wol:
+  cooldown: 90  # Seconds between WOL attempts
+  script_path: "./WOL.sh"
+
+# Performance Settings
+performance:
+  fps_report_interval: 5  # Report FPS every N seconds
+  enable_performance_monitoring: true
+
+# Feature Flags
+features:
+  enable_hand_gesture: true
+  enable_wol: true
+  enable_statistics: true
+  enable_health_check: true
